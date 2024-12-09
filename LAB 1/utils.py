@@ -21,6 +21,10 @@ def line_draw(line, canv, size, color=(255,255,255)):
 
 
 def plot_img(img, do_not_use=[0]):
-    plt.figure(do_not_use[0])
+    h,w,_  = np.array(img).shape
+    plt.figure(do_not_use[0],figsize=(w / 100, h / 100))
+    plt.tight_layout(pad=0.0)
+    plt.imshow(img,aspect='auto')
+    
     do_not_use[0] += 1
-    plt.imshow(img)
+    
