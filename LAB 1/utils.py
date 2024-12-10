@@ -22,7 +22,7 @@ def line_draw(line, canv, size, color=(255,255,255)):
 
 def plot_img(img):
     h,w,_  = np.array(img).shape
-    plt.figure(figsize=(w / 100, h / 100))
+    plt.figure(figsize=(w / 200, h / 200))
     plt.tight_layout(pad=0.0)
     plt.imshow(img,aspect='auto')
     plt.show()
