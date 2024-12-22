@@ -1,9 +1,11 @@
 import numpy as np
-from math import ceil
+from math import ceil, log
 import matplotlib.pyplot as plt
 from scipy.ndimage import map_coordinates
 import random
 import plotly.graph_objects as go
+from typing import Tuple
+import sys
 
 def plot_img(img, do_not_use=[0]):
     plt.figure(do_not_use[0])
@@ -71,28 +73,64 @@ def Normalise_last_coord(x):
     
     return xn
 
-def DLT_homography(points1, points2):
-    
-    # ToDo: complete this code .......
+def DLT_homography(points1:np.ndarray, points2:np.ndarray) -> np.ndarray:
 
+    A = []
+    
+    for i in range(points1.shape[1]):
+        x1, y1, _ = points1[:, i]
+        x2, y2, _ = points2[:, i]
+        
+        # Ai (2x9)
+        A.append([
+            0, 0, 0, 
+            -x1, -y1, -1, 
+            y2*x1, y2*y1, y2
+        ])
+        A.append([
+            x1, y1, 1, 
+            0, 0, 0, 
+            -x2*x1, -x2*y1, -x2
+        ])
+    
+    A = np.array(A)
+    
+    _, _, VT = np.linalg.svd(A)
+    h = VT[-1]
+    
+    # Reshape the solution vector into a 3x3 matrix
+    H = h.reshape(3, 3)
+    
     return H
 
-def Inliers(H, points1, points2, th):
+def Inliers(H:np.ndarray, points1:np.ndarray, points2:np.ndarray, th:float) -> np.ndarray:
     
     # Check that H is invertible
-    if abs(math.log(np.linalg.cond(H))) > 15:
+    if abs(log(np.linalg.cond(H))) > 15:
         idx = np.empty(1)
         return idx
     
+    Npts = points1.shape[1]
+    inliers = []
+    projected_points = np.dot(H, points1)
+    projected_points /= projected_points[2, :]
     
-    # ToDo: complete this code .......
+    for i in range(Npts):
+        error = np.linalg.norm(projected_points[:2, i] - points2[:2, i])
+        if error < th:
+            inliers.append(i)
     
-    return
+    return np.array(inliers)
 
-def Ransac_DLT_homography(points1, points2, th, max_it):
+
+def Ransac_DLT_homography(
+        points1: np.ndarray, 
+        points2: np.ndarray, 
+        th: float, 
+        max_it: int
+        ) -> Tuple[np.ndarray, np.ndarray]:
     
     Ncoords, Npts = points1.shape
-    
     it = 0
     best_inliers = np.empty(1)
     
@@ -107,13 +145,14 @@ def Ransac_DLT_homography(points1, points2, th, max_it):
         
         # update estimate of iterations (the number of trials) to ensure we pick, with probability p,
         # an initial data set with no outliers
+
         fracinliers = inliers.shape[0]/Npts
         pNoOutliers = 1 -  fracinliers**4
         eps = sys.float_info.epsilon
         pNoOutliers = max(eps, pNoOutliers)   # avoid division by -Inf
         pNoOutliers = min(1-eps, pNoOutliers) # avoid division by 0
-        p = 0.99
-        max_it = math.log(1-p)/math.log(pNoOutliers)
+        p = 0.99 # CI
+        max_it = log(1-p)/log(pNoOutliers)
         
         it += 1
     
