@@ -178,7 +178,7 @@ def view_direction(P, x):
 def plot_camera(P, w, h, fig, legend):
     
     o = optical_center(P)
-    scale = 200
+    scale = 2000
     p1 = o + view_direction(P, [0, 0]) * scale
     p2 = o + view_direction(P, [w, 0]) * scale
     p3 = o + view_direction(P, [w, h]) * scale
