@@ -1,0 +1,8 @@
+.idea
+/LAB 4/colmap-x64-windows-cuda/*
+/LAB 4/gerrard-hall
+/LAB 4/output/dense
+/LAB 4/output_lab3_Nimages
+__pycache__
+colmap-x64-windows-cuda
+/LAB 4/output
